@@ -3,6 +3,7 @@ import { isAuthenticated } from '../auth'
 import { read, update } from './apiUser'
 import { Redirect } from 'react-router-dom'
 import DefaultProfile from '../images/loading.jpg'
+import Loading from './Loading'
 
 class EditProfile extends Component {
 
@@ -88,7 +89,11 @@ class EditProfile extends Component {
     updateForm = (name, email, password, photoUrl) => {
         return <form>
             <div>
-                <img src={photoUrl} alt={name} style={{ width: '20%' }} />
+                {photoUrl === "" ? (
+                    <Loading />
+                ) : (
+                        <img className="card-img-top" src={photoUrl} alt={name} style={{ width: '100%', height: '15vw', objectFit: 'cover' }} />
+                    )}
             </div>
             <div className="form-group">
                 <label className="text-muted">Profile Photo</label>
@@ -116,7 +121,7 @@ class EditProfile extends Component {
             return <Redirect to={`/user/${id}`} />
         }
 
-        const photoUrl = id ? `${process.env.REACT_APP_API_URL}/user/photo/${id}` : DefaultProfile
+        const photoUrl = id ? `${process.env.REACT_APP_API_URL}/user/photo/${id}` : ''
 
         return (
             <div className="container">
