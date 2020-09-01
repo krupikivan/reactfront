@@ -1,4 +1,4 @@
-## A Fullstack app management the User profile
+## A Fullstack app to manage a User profile
 
 ## Features:
 > Create / Update / Delete User
