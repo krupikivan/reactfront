@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { isAuthenticated } from '../auth';
 import { Redirect, Link } from 'react-router-dom';
 import { read } from './apiUser';
-import DefaultProfile from '../images/avatar.png'
+import DefaultProfile from '../images/loading.jpg'
 import DeleteUser from './DeleteUser';
 
 class Profile extends Component {
@@ -44,14 +44,14 @@ class Profile extends Component {
 
     render() {
         const { redirectToSignin, user } = this.state
+        const photoUrl = user._id ? `${process.env.REACT_APP_API_URL}/user/photo/${user._id}` : DefaultProfile
         if (redirectToSignin) return <Redirect to="/signin" />
-
         return (
             <div className="container">
                 <h2 className="mt-5 mb-5">Profile</h2>
                 <div className="row">
                     <div className="col-md-6">
-                        <img className="card-img-top" src={DefaultProfile} alt={user.name} style={{ width: '100%', height: '15vw', objectFit: 'cover' }} />
+                        <img className="card-img-top" src={photoUrl} alt={user.name} style={{ width: '100%', height: '15vw', objectFit: 'cover' }} />
                     </div>
                     <div className="col-md-6">
                         <div className="lead mt-2">

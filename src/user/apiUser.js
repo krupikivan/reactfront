@@ -36,14 +36,14 @@ export const remove = (userId, token) => {
 }
 
 export const update = (userId, token, user) => {
+    console.log(user)
     return fetch(`${process.env.REACT_APP_API_URL}/user/${userId}`, {
         method: "PUT",
         headers: {
             Accept: "application/json",
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(user)
+        body: user
     }).then(response => {
         return response.json()
     })

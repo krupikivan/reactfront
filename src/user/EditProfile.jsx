@@ -2,18 +2,21 @@ import React, { Component } from 'react'
 import { isAuthenticated } from '../auth'
 import { read, update } from './apiUser'
 import { Redirect } from 'react-router-dom'
+import DefaultProfile from '../images/loading.jpg'
 
 class EditProfile extends Component {
 
     constructor() {
         super()
         this.state = {
-            error: "",
             id: "",
             name: "",
             email: "",
             password: "",
-            redirectToProfile: false
+            redirectToProfile: false,
+            error: "",
+            fileSize: 0,
+            loading: false
         }
     }
 
@@ -31,17 +34,22 @@ class EditProfile extends Component {
     }
 
     componentDidMount() {
+        this.userData = new FormData()
         const userId = this.props.match.params.userId
         this.init(userId)
     }
 
     isValid = () => {
-        const { name, email, password } = this.state
-        if (name.length == 0) {
+        const { name, email, password, fileSize } = this.state
+        if (fileSize > 100000) {
+            this.setState({ error: "File size should be less than 100 kb" })
+            return false
+        }
+        if (name.length === 0) {
             this.setState({ error: "Name is required" })
             return false
         }
-        if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+        if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
             this.setState({ error: "Email is not valid" })
             return false
         }
@@ -53,21 +61,20 @@ class EditProfile extends Component {
     }
 
     handleChange = name => event => {
-        this.setState({ [name]: event.target.value })
+        const value = name === "photo" ? event.target.files[0] : event.target.value
+        const fileSize = name === "photo" ? event.target.files[0].fileSize : 0
+        this.userData.set(name, value)
+        this.setState({ [name]: value, fileSize })
     }
 
-    clickSubmit = event => {
+    clickUpdate = event => {
         event.preventDefault()
+        this.setState({ loading: true })
         if (this.isValid()) {
-            const { name, email, password } = this.state;
-            const user = {
-                name,
-                email,
-                password: password || undefined
-            };
+            const { userData } = this;
             const userId = this.props.match.params.userId
             const token = isAuthenticated().token
-            update(userId, token, user)
+            update(userId, token, userData)
                 .then(data => {
                     console.log(data);
                     if (data.error) this.setState({ error: data.error })
@@ -78,8 +85,15 @@ class EditProfile extends Component {
         }
     }
 
-    updateForm = (name, email, password) => {
+    updateForm = (name, email, password, photoUrl) => {
         return <form>
+            <div>
+                <img src={photoUrl} alt={name} style={{ width: '20%' }} />
+            </div>
+            <div className="form-group">
+                <label className="text-muted">Profile Photo</label>
+                <input onChange={this.handleChange("photo")} type="file" accept="image/*" className="form-control" />
+            </div>
             <div className="form-group">
                 <label className="text-muted">Name</label>
                 <input onChange={this.handleChange("name")} type="text" className="form-control" value={name} />
@@ -92,20 +106,24 @@ class EditProfile extends Component {
                 <label className="text-muted">Password</label>
                 <input onChange={this.handleChange("password")} type="password" className="form-control" value={password} />
             </div>
-            <button onClick={this.clickSubmit} className="btn btn-raised btn-primary">UPDATE</button>
+            <button onClick={this.clickUpdate} className="btn btn-raised btn-primary">UPDATE</button>
         </form>
     }
 
     render() {
-        const { id, name, email, password, redirectToProfile, error } = this.state
+        const { id, name, email, password, redirectToProfile, error, loading } = this.state
         if (redirectToProfile) {
             return <Redirect to={`/user/${id}`} />
         }
+
+        const photoUrl = id ? `${process.env.REACT_APP_API_URL}/user/photo/${id}` : DefaultProfile
+
         return (
             <div className="container">
                 <h2 className="mt-5 mb-5">Edit Profile</h2>
                 <div className="alert alert-danger" style={{ display: error ? "" : "none" }}>{error}</div>
-                {this.updateForm(name, email, password)}
+                {loading ? <div className="jumbotron text-center">Loading...</div> : this.updateForm(name, email, password, photoUrl)}
+
             </div>
         )
     }
